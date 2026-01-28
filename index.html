@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Recipe Finder</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <h1>Recipe Finder</h1>
+
+    <form method="POST">
+      <input
+        type="text"
+        name="ingredients"
+        placeholder="Ingredients e.g., chicken,tomato"
+        value="{{ ingredients }}"
+      />
+      <select name="cuisine">
+        <option value="">All Cuisines</option>
+        <option
+          value="Italian"
+          {%
+          if
+          cuisine=""
+          ="Italian"
+          %}selected{%
+          endif
+          %}
+        >
+          Italian
+        </option>
+        <option value="Indian" {% if cuisine="" ="Indian" %}selected{% endif %}>
+          Indian
+        </option>
+        <option
+          value="Chinese"
+          {%
+          if
+          cuisine=""
+          ="Chinese"
+          %}selected{%
+          endif
+          %}
+        >
+          Chinese
+        </option>
+        <option
+          value="Mexican"
+          {%
+          if
+          cuisine=""
+          ="Mexican"
+          %}selected{%
+          endif
+          %}
+        >
+          Mexican
+        </option>
+      </select>
+      <button type="submit">Search</button>
+    </form>
+
+    <h2>Recipes</h2>
+    <div class="recipes">
+      {% for recipe in recipes %}
+      <div class="recipe-card">
+        <h3>{{ recipe.title }}</h3>
+        <img src="{{ recipe.image }}" width="200" />
+        <p><a href="{{ recipe.sourceUrl }}" target="_blank">View Recipe</a></p>
+        <form method="POST" action="{{ url_for('save_favorite') }}">
+          <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
+          <input type="hidden" name="title" value="{{ recipe.title }}" />
+          <input type="hidden" name="image" value="{{ recipe.image }}" />
+          <input type="hidden" name="link" value="{{ recipe.sourceUrl }}" />
+          <button type="submit">Save Favorite</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h2>Favorites</h2>
+    <div class="recipes">
+      {% for fav in favorites %}
+      <div class="recipe-card">
+        <h3>{{ fav.title }}</h3>
+        <img src="{{ fav.image }}" width="200" />
+        <p><a href="{{ fav.link }}" target="_blank">View Recipe</a></p>
+      </div>
+      {% endfor %}
+    </div>
+  </body>
+</html>
