@@ -32,7 +32,7 @@ This project demonstrates **API integration**, **Flask web development** and **b
 
 ## **Installation**
 
-1. **Clone the repository**:
+1.Clone the Repository
 
 ```bash
 git clone <YOUR_REPO_URL>
@@ -77,4 +77,5 @@ Usage:
 3 . Click Search
 4 . Click Save Favorite to save any recipe
 5 . Scroll down to view your saved favorite
+
 
