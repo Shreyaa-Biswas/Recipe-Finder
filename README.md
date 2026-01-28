@@ -34,7 +34,6 @@ This project demonstrates **API integration**, **Flask web development** and **b
 
 1.Clone the Repository
 
-```bash
 git clone <YOUR_REPO_URL>
 cd recipe_finder
 
@@ -77,5 +76,6 @@ Usage:
 3 . Click Search
 4 . Click Save Favorite to save any recipe
 5 . Scroll down to view your saved favorite
+
 
 
