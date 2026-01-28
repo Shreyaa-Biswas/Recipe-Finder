@@ -4,7 +4,7 @@ import json
 import os
 
 app = Flask(__name__)
-API_KEY = "YOUR_API_KEY"  # Replace with your Spoonacular API key
+API_KEY = os.getenv("YOUR_API_KEY")  # Replace with your Spoonacular API key
 
 FAV_FILE = "favorites.json"
 
@@ -61,3 +61,4 @@ def save_favorite():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
