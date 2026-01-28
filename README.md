@@ -15,12 +15,6 @@ This project demonstrates **API integration**, **Flask web development** and **b
 
 ---
 
-## **Demo Screenshot**
-![Demo Screenshot](./screenshot.png)  
-*(Replace with your own screenshot)*
-
----
-
 ## **Tech Stack**
 - Python 3  
 - Flask  
@@ -116,6 +110,7 @@ recipe_finder/
 
 ## **Credits**
 - [Spoonacular API](https://spoonacular.com/food-api) for recipe data
+
 
 
 
