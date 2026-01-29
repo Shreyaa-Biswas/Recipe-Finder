@@ -39,9 +39,9 @@ This project demonstrates **API integration**, **vanilla JavaScript**, and **mod
 ### **2. Add API Key to the File**
 
 1. Open `recipe-finder.html` in any text editor
-2. Find line 270:
+2. Find the line:
    ```javascript
-   const API_KEY = 'YOUR_API_KEY_HERE';
+   const API_KEY = 'Enter your API_KEY here';
    ```
 3. Replace with your actual key:
    ```javascript
@@ -212,3 +212,4 @@ For questions or suggestions, open an issue on GitHub or contact the developer.
 ---
 
 **Enjoy cooking! 🍳**
+
