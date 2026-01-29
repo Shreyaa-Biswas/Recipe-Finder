@@ -1,94 +1,471 @@
-<!doctype html>
-<html>
-  <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe Finder</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='styles.css') }}"
-    />
-  </head>
-  <body>
-    <h1>Recipe Finder</h1>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <form method="POST">
-      <input
-        type="text"
-        name="ingredients"
-        placeholder="Ingredients e.g., chicken,tomato"
-        value="{{ ingredients }}"
-      />
-      <select name="cuisine">
-        <option value="">All Cuisines</option>
-        <option
-          value="Italian"
-          {%
-          if
-          cuisine=""
-          ="Italian"
-          %}selected{%
-          endif
-          %}
-        >
-          Italian
-        </option>
-        <option value="Indian" {% if cuisine="" ="Indian" %}selected{% endif %}>
-          Indian
-        </option>
-        <option
-          value="Chinese"
-          {%
-          if
-          cuisine=""
-          ="Chinese"
-          %}selected{%
-          endif
-          %}
-        >
-          Chinese
-        </option>
-        <option
-          value="Mexican"
-          {%
-          if
-          cuisine=""
-          ="Mexican"
-          %}selected{%
-          endif
-          %}
-        >
-          Mexican
-        </option>
-      </select>
-      <button type="submit">Search</button>
-    </form>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #1f2937;
+        }
 
-    <h2>Recipes</h2>
-    <div class="recipes">
-      {% for recipe in recipes %}
-      <div class="recipe-card">
-        <h3>{{ recipe.title }}</h3>
-        <img src="{{ recipe.image }}" width="200" />
-        <p><a href="{{ recipe.sourceUrl }}" target="_blank">View Recipe</a></p>
-        <form method="POST" action="{{ url_for('save_favorite') }}">
-          <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
-          <input type="hidden" name="title" value="{{ recipe.title }}" />
-          <input type="hidden" name="image" value="{{ recipe.image }}" />
-          <input type="hidden" name="link" value="{{ recipe.sourceUrl }}" />
-          <button type="submit">Save Favorite</button>
-        </form>
-      </div>
-      {% endfor %}
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 32px;
+            font-size: 1.1rem;
+        }
+
+        .search-box {
+            background: #f9fafb;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #374151;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        button {
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            padding: 11px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.2s;
+            font-family: inherit;
+        }
+
+        button:hover:not(:disabled) {
+            background: #b91c1c;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loader.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #fee;
+            border-top-color: #dc2626;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .card-body {
+            padding: 16px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            min-height: 50px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-saved {
+            background: #059669;
+        }
+
+        .btn-saved:hover {
+            background: #047857;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 40px 0 20px;
+            color: #111827;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fca;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #111827;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .notice {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        .notice a {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍳 Recipe Finder</h1>
+        <p class="subtitle">Find recipes with ingredients you have at home</p>
+
+        <div class="notice">
+            Get a free API key from <a href="https://spoonacular.com/food-api" target="_blank">Spoonacular</a> (150 requests/day). Add it to "const API_KEY" in the code.
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="search-box">
+            <form id="form">
+                <div class="form-row">
+                    <div>
+                        <label for="ingredients">Ingredients</label>
+                        <input type="text" id="ingredients" placeholder="rice, tomato, garlic" required>
+                    </div>
+                    <div>
+                        <label for="cuisine">Cuisine</label>
+                        <select id="cuisine">
+                            <option value="">All</option>
+                            <option value="Italian">Italian</option>
+                            <option value="Indian">Indian</option>
+                            <option value="Chinese">Chinese</option>
+                            <option value="Mexican">Mexican</option>
+                            <option value="Japanese">Japanese</option>
+                            <option value="Thai">Thai</option>
+                            <option value="French">French</option>
+                            <option value="Mediterranean">Mediterranean</option>
+                        </select>
+                    </div>
+                    <button type="submit" id="submitBtn">Search</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>Searching recipes...</p>
+        </div>
+
+        <div id="results"></div>
+        <div id="favorites"></div>
     </div>
 
-    <h2>Favorites</h2>
-    <div class="recipes">
-      {% for fav in favorites %}
-      <div class="recipe-card">
-        <h3>{{ fav.title }}</h3>
-        <img src="{{ fav.image }}" width="200" />
-        <p><a href="{{ fav.link }}" target="_blank">View Recipe</a></p>
-      </div>
-      {% endfor %}
-    </div>
-  </body>
+    <script>
+        const API_KEY = '67e4e68c012c4ca6b9463771f91dc99e';
+        const API_URL = 'https://api.spoonacular.com/recipes/complexSearch';
+        const STORAGE_KEY = 'recipe_favorites';
+
+        const els = {
+            form: document.getElementById('form'),
+            ingredients: document.getElementById('ingredients'),
+            cuisine: document.getElementById('cuisine'),
+            submitBtn: document.getElementById('submitBtn'),
+            loader: document.getElementById('loader'),
+            error: document.getElementById('error'),
+            results: document.getElementById('results'),
+            favorites: document.getElementById('favorites')
+        };
+
+        let favorites = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+        function showError(msg) {
+            els.error.textContent = msg;
+            els.error.classList.add('show');
+            setTimeout(() => els.error.classList.remove('show'), 5000);
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        function saveFavorites() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+            renderFavorites();
+        }
+
+        function toggleFavorite(recipe) {
+            const index = favorites.findIndex(f => f.id === recipe.id);
+            if (index > -1) {
+                favorites.splice(index, 1);
+                showToast('Removed from favorites');
+            } else {
+                favorites.push(recipe);
+                showToast('Added to favorites');
+            }
+            saveFavorites();
+            renderResults(window.currentRecipes || []);
+        }
+
+        function isFavorite(id) {
+            return favorites.some(f => f.id === id);
+        }
+
+        function createCard(recipe, showRemove = false) {
+            const url = recipe.sourceUrl || `https://spoonacular.com/recipes/${recipe.title.replace(/\s+/g, '-')}-${recipe.id}`;
+            const fav = isFavorite(recipe.id);
+            
+            return `
+                <div class="card">
+                    <img src="${recipe.image}" alt="${recipe.title}">
+                    <div class="card-body">
+                        <h3 class="card-title">${recipe.title}</h3>
+                        <div class="btn-group">
+                            <a href="${url}" target="_blank" class="btn-small" style="text-decoration:none;text-align:center;display:block">View</a>
+                            <button class="btn-small ${fav ? 'btn-saved' : 'btn-secondary'}" 
+                                onclick='toggleFavorite(${JSON.stringify({id: recipe.id, title: recipe.title, image: recipe.image, sourceUrl: url})})'>
+                                ${fav ? '✓ Saved' : '⭐ Save'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderResults(recipes) {
+            window.currentRecipes = recipes;
+            if (!recipes.length) {
+                els.results.innerHTML = '<div class="empty"><h2>No recipes found</h2><p>Try different ingredients</p></div>';
+                return;
+            }
+            els.results.innerHTML = `
+                <h2 class="section-title">Results (${recipes.length})</h2>
+                <div class="grid">${recipes.map(r => createCard(r)).join('')}</div>
+            `;
+        }
+
+        function renderFavorites() {
+            if (!favorites.length) {
+                els.favorites.innerHTML = '<div class="empty"><h2>No favorites yet</h2><p>Save recipes to see them here</p></div>';
+                return;
+            }
+            els.favorites.innerHTML = `
+                <h2 class="section-title">My Favorites (${favorites.length})</h2>
+                <div class="grid">${favorites.map(f => createCard(f, true)).join('')}</div>
+            `;
+        }
+
+        async function searchRecipes(ingredients, cuisine) {
+            if (!API_KEY || API_KEY === 'YOUR_API_KEY_HERE') {
+                showError('Add your Spoonacular API key to the code to use the app.');
+                return [];
+            }
+
+            const params = new URLSearchParams({
+                apiKey: API_KEY,
+                includeIngredients: ingredients,
+                number: 12,
+                addRecipeInformation: true,
+                fillIngredients: true
+            });
+
+            if (cuisine) params.append('cuisine', cuisine);
+
+            try {
+                const res = await fetch(`${API_URL}?${params}`);
+                if (!res.ok) {
+                    if (res.status === 401) throw new Error('Invalid API key');
+                    if (res.status === 402) throw new Error('API limit reached');
+                    throw new Error('Search failed');
+                }
+                const data = await res.json();
+                return data.results || [];
+            } catch (err) {
+                showError(err.message);
+                return [];
+            }
+        }
+
+        els.form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const ingredients = els.ingredients.value.trim();
+            const cuisine = els.cuisine.value;
+
+            els.loader.classList.add('show');
+            els.submitBtn.disabled = true;
+
+            const recipes = await searchRecipes(ingredients, cuisine);
+            
+            els.loader.classList.remove('show');
+            els.submitBtn.disabled = false;
+
+            renderResults(recipes);
+        });
+
+        renderFavorites();
+    </script>
+</body>
 </html>
